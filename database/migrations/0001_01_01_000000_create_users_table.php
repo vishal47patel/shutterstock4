@@ -17,6 +17,17 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('username', 50)->nullable()->unique();
+            $table->string('phone', 20)->nullable();
+            $table->text('bio')->nullable();
+
+            $table->enum('role', ['user', 'admin'])->default('user');   // USER ROLE
+            $table->enum('subscription', ['free', 'premium', 'pro'])->default('free'); // SUBSCRIPTION TYPE
+            $table->enum('status', ['active', 'inactive', 'blocked','suspended'])->default('active'); // ACCOUNT STATUS
+            $table->string('image')->nullable(); // STORE IMAGE FILE PATH
+
+            $table->softDeletes();
+            $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

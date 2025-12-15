@@ -34,7 +34,7 @@ class UserController extends BaseController
 
             // UPDATE ONLY FIELDS PASSED IN REQUEST
             $user->update([
-                'email'    => $request->email ?? $user->email,
+               // 'email'    => $request->email ?? $user->email,
                 'username' => $request->username ?? $user->username,
                 'phone'    => $request->phone ?? $user->phone,
                 'bio'      => $request->bio ?? $user->bio,
@@ -96,7 +96,7 @@ class UserController extends BaseController
             }
 
             // Update password
-            $user->password = \Hash::make($request->new_password);
+            $user->password = \Hash::make(trim($request->new_password));
             $user->save();
 
             return $this->sendResponse([], 'Password changed successfully.');
@@ -372,7 +372,7 @@ class UserController extends BaseController
             $user->save();
 
             // Always include ID for reference
-            $updatedFields['id'] = $user->id;
+            //$updatedFields['id'] = $user->id;
 
             return $this->sendResponse($updatedFields, 'User updated successfully.');
         } catch (\Throwable $e) {

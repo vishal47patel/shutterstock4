@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Validator;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 
 class RegisterController extends BaseController
 {
@@ -39,9 +41,9 @@ class RegisterController extends BaseController
             }
 
             $input = $request->all();
-            $input['password'] = bcrypt($input['password']);
+            $input['password'] = bcrypt(trim($input['password']));
             $user = User::create($input);
-            $success['token'] =  $user->createToken('MyApp')->plainTextToken;
+            //$success['token'] =  $user->createToken('MyApp')->plainTextToken;
             $success['name'] =  $user->name;
 
             return $this->sendResponse($success, 'User register successfully.');
@@ -66,6 +68,7 @@ class RegisterController extends BaseController
     public function login(Request $request): JsonResponse
     {
         try {
+           
             // Validation
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email|max:100',
@@ -74,7 +77,7 @@ class RegisterController extends BaseController
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors());
             }
-            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            if (Auth::attempt(['email' => trim($request->email), 'password' => trim($request->password)])) {
                 $user = Auth::user();
                 $user->last_login_at = now();
                 $user->save();
