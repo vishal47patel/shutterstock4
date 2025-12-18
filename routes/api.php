@@ -1,15 +1,16 @@
 <?php
 
+use App\Http\Controllers\API\ImageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RegisterController;
-use App\Http\Controllers\API\UserController;    
+use App\Http\Controllers\API\UserController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::controller(RegisterController::class)->group(function(){
+Route::controller(RegisterController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
     Route::post('forgot-password', 'forgotPassword');
@@ -24,14 +25,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('user/restore', 'restoreUser');
         Route::delete('user/force-delete', 'forceDeleteUser');
         Route::get('users', 'userList');
-        Route::get('/user-stats','userStats'); 
-        Route::patch('user/status', 'updateStatus');      
+        Route::get('/user-stats', 'userStats');
+        Route::patch('user/status', 'updateStatus');
     });
+
+    Route::controller(ImageController::class)->group(function () {
+        Route::post('images', 'imageList');
+        Route::post('image/store', 'store');
+        Route::post('image/update', 'update');
+        Route::delete('image/delete', 'destroy');
+    });
+
+
+
 
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 });
+
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
+
+
+
