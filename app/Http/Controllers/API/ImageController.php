@@ -348,7 +348,14 @@ class ImageController extends BaseController
 
             $image->save();
 
-            return $this->sendResponse($image, 'Image updated successfully.');
+            $responseData = [
+                'image' => $image->image,
+                'title' => $image->title,
+                'tags'  => $image->tags,
+                'price' => $image->price,
+            ];
+
+            return $this->sendResponse($responseData, 'Image updated successfully.');
         } catch (\Throwable $e) {
             return $this->sendError('Exception Error', [
                 'error_message' => $e->getMessage(),
