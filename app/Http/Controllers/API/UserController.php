@@ -15,10 +15,19 @@ class UserController extends BaseController
     public function updateProfile(Request $request): JsonResponse
     {
         try {
-            $user = Auth::user();
 
-            if (!$user) {
-                return $this->sendError('Unauthorised.', ['error' => 'User not logged in']);
+            if ($request->filled('user_id')) {
+                $user = User::find($request->user_id);
+
+                if (!$user) {
+                    return $this->sendError('User not found.', []);
+                }
+            } else {
+                $user = Auth::user();
+
+                if (!$user) {
+                    return $this->sendError('Unauthorised.', ['error' => 'User not logged in']);
+                }
             }
 
             $validator = Validator::make($request->all(), [
@@ -31,10 +40,21 @@ class UserController extends BaseController
             if ($validator->fails()) {
                 return $this->sendError('Validation Error.', $validator->errors());
             }
+            $user_image = '';
+            if ($request->hasFile('image')) {
+                //Storage::disk('public')->delete($image->image);
+                //$image->image = $request->file('image')->store('images', 'public');
+                $imageFile = $request->file('image');
+                $filename  = time() . '_' . $imageFile->getClientOriginalName();
+                $imageFile->move(public_path('images'), $filename);
+
+                $user_image = 'images/' . $filename;
+            }
 
             // UPDATE ONLY FIELDS PASSED IN REQUEST
             $user->update([
-               // 'email'    => $request->email ?? $user->email,
+                // 'email'    => $request->email ?? $user->email,
+                'image' => $user_image,
                 'username' => $request->username ?? $user->username,
                 'phone'    => $request->phone ?? $user->phone,
                 'bio'      => $request->bio ?? $user->bio,
