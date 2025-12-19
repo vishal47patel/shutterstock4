@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->string('image');
             $table->string('title');
+            $table->text('tags')->nullable();
             $table->decimal('price', 10, 2)->default(0);
             $table->text('desc')->nullable();
 

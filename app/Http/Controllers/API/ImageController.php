@@ -12,18 +12,134 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ImageController extends BaseController
 {
+    // public function imageList(Request $request): JsonResponse
+    // {
+    //     try {
+    //         $validator = Validator::make($request->all(), [
+    //             'page'       => 'nullable|integer|min:1',
+    //             'per_page'   => 'nullable|integer|min:1|max:100',
+    //             'status'     => 'nullable|in:Approved,Pending,Rejected',
+    //             'category_id'   => 'nullable|integer|min:0',
+    //             'user_id'    => 'nullable|integer',
+    //             'search'     => 'nullable|string|max:100',
+    //             'sort_by'    => 'nullable|string',
+    //             'sort_order' => 'nullable|in:asc,desc',
+    //         ]);
+
+    //         if ($validator->fails()) {
+    //             return $this->sendError('Validation Error.', $validator->errors());
+    //         }
+
+    //         $perPage   = $request->per_page ?? 10;
+    //         $sortOrder = $request->sort_order ?? 'desc';
+
+    //         /*
+    //     |--------------------------------------------------------------------------
+    //     | Allowed fields
+    //     |--------------------------------------------------------------------------
+    //     */
+    //         $searchableFields = [
+    //             'title',
+    //             'tags',
+    //             'status',
+    //             'user_id',
+    //             'category_id',
+    //         ];
+
+    //         $sortableFields = [
+    //             'id',
+    //             'title',
+    //             'tags',
+    //             'price',
+    //             'status',
+    //             'user_id',
+    //             'category_id',
+    //             'created_at',
+    //         ];
+
+    //         $sortBy = in_array($request->sort_by, $sortableFields)
+    //             ? $request->sort_by
+    //             : 'created_at';
+
+    //         $query = Image::query();
+
+    //         /*
+    //     |--------------------------------------------------------------------------
+    //     | Exact Filters
+    //     |--------------------------------------------------------------------------
+    //     */
+    //         foreach ($request->only($searchableFields) as $field => $value) {
+    //             if ($value !== null && $value !== '') {
+    //                 if ($field === 'category_id' && $value == 0) {
+    //                     $query->where(function ($q) {
+    //                         $q->whereNull('category_id')
+    //                             ->orWhere('category_id', 0);
+    //                     });
+    //                 } else {
+    //                     $query->where($field, $value);
+    //                 }
+    //             }
+    //         }
+
+    //         /*
+    //     |--------------------------------------------------------------------------
+    //     | Global Search
+    //     |--------------------------------------------------------------------------
+    //     */
+    //         if ($request->filled('search')) {
+    //             $search = trim($request->search);
+
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('title', 'LIKE', "%{$search}%")
+    //                     ->orWhere('tags', 'LIKE', "%{$search}%")
+    //                     ->orWhere('desc', 'LIKE', "%{$search}%")
+    //                     ->orWhere('alt', 'LIKE', "%{$search}%");
+    //             });
+    //         }
+
+    //         /*
+    //     |--------------------------------------------------------------------------
+    //     | Sorting & Pagination
+    //     |--------------------------------------------------------------------------
+    //     */
+    //         $images = $query
+    //             ->orderBy($sortBy, $sortOrder)
+    //             ->paginate($perPage);
+
+    //         /*
+    //     |--------------------------------------------------------------------------
+    //     | Append Image URL
+    //     |--------------------------------------------------------------------------
+    //     */
+    //         $images->getCollection()->transform(function ($image) {
+    //             $image->image_url = $image->image
+    //                 ? asset('storage/' . $image->image)
+    //                 : null;
+    //             return $image;
+    //         });
+
+    //         return $this->sendResponse($images, 'Image list fetched successfully.');
+    //     } catch (\Throwable $e) {
+    //         return $this->sendError('Exception Error', [
+    //             'error_message' => $e->getMessage(),
+    //             'file'         => $e->getFile(),
+    //             'line'         => $e->getLine(),
+    //             'error_type'   => get_class($e),
+    //         ]);
+    //     }
+    // }
     public function imageList(Request $request): JsonResponse
     {
         try {
             $validator = Validator::make($request->all(), [
-                'page'       => 'nullable|integer|min:1',
-                'per_page'   => 'nullable|integer|min:1|max:100',
-                'status'     => 'nullable|in:Approved,Pending,Rejected',
-                'category'   => 'nullable|integer|min:0',
-                'user_id'    => 'nullable|integer',
-                'search'     => 'nullable|string|max:100',
-                'sort_by'    => 'nullable|string',
-                'sort_order' => 'nullable|in:asc,desc',
+                'page'        => 'nullable|integer|min:1',
+                'per_page'    => 'nullable|integer|min:1|max:100',
+                'status'      => 'nullable|in:Approved,Pending,Rejected',
+                'category_id' => 'nullable|integer|min:0',
+                'user_id'     => 'nullable|integer',
+                'search'      => 'nullable|string|max:100',
+                'sort_by'     => 'nullable|string',
+                'sort_order'  => 'nullable|in:asc,desc',
             ]);
 
             if ($validator->fails()) {
@@ -33,16 +149,10 @@ class ImageController extends BaseController
             $perPage   = $request->per_page ?? 10;
             $sortOrder = $request->sort_order ?? 'desc';
 
-            /*
-        |--------------------------------------------------------------------------
-        | Allowed fields
-        |--------------------------------------------------------------------------
-        */
             $searchableFields = [
-                'title',
                 'status',
                 'user_id',
-                'category',
+                'category_id',
             ];
 
             $sortableFields = [
@@ -50,8 +160,6 @@ class ImageController extends BaseController
                 'title',
                 'price',
                 'status',
-                'user_id',
-                'category',
                 'created_at',
             ];
 
@@ -59,7 +167,19 @@ class ImageController extends BaseController
                 ? $request->sort_by
                 : 'created_at';
 
-            $query = Image::query();
+            /*
+        |--------------------------------------------------------------------------
+        | Query with SELECT (IMPORTANT)
+        |--------------------------------------------------------------------------
+        */
+            $query = Image::select([
+                'id',
+                'image',
+                'title',
+                'tags',
+                'price',
+                'status',
+            ]);
 
             /*
         |--------------------------------------------------------------------------
@@ -68,10 +188,10 @@ class ImageController extends BaseController
         */
             foreach ($request->only($searchableFields) as $field => $value) {
                 if ($value !== null && $value !== '') {
-                    if ($field === 'category' && $value == 0) {
+                    if ($field === 'category_id' && $value == 0) {
                         $query->where(function ($q) {
-                            $q->whereNull('category')
-                                ->orWhere('category', 0);
+                            $q->whereNull('category_id')
+                                ->orWhere('category_id', 0);
                         });
                     } else {
                         $query->where($field, $value);
@@ -89,6 +209,7 @@ class ImageController extends BaseController
 
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'LIKE', "%{$search}%")
+                        ->orWhere('tags', 'LIKE', "%{$search}%")
                         ->orWhere('desc', 'LIKE', "%{$search}%")
                         ->orWhere('alt', 'LIKE', "%{$search}%");
                 });
@@ -103,18 +224,6 @@ class ImageController extends BaseController
                 ->orderBy($sortBy, $sortOrder)
                 ->paginate($perPage);
 
-            /*
-        |--------------------------------------------------------------------------
-        | Append Image URL
-        |--------------------------------------------------------------------------
-        */
-            $images->getCollection()->transform(function ($image) {
-                $image->image_url = $image->image
-                    ? asset('storage/' . $image->image)
-                    : null;
-                return $image;
-            });
-
             return $this->sendResponse($images, 'Image list fetched successfully.');
         } catch (\Throwable $e) {
             return $this->sendError('Exception Error', [
@@ -126,14 +235,16 @@ class ImageController extends BaseController
         }
     }
 
+
     public function store(Request $request): JsonResponse
     {
         try {
             $validator = Validator::make($request->all(), [
                 'image'    => 'required|image|mimes:jpg,jpeg,png|max:2048',
                 'title'    => 'required|string|max:150',
+                'tags'    => 'nullable',
                 'price'    => 'required|numeric',
-                'category' => 'required|integer',
+                'category_id' => 'nullable|integer',
                 'status'   => 'nullable|in:Approved,Pending,Rejected',
                 'alt'      => 'nullable|string',
                 'desc'     => 'nullable|string',
@@ -145,20 +256,33 @@ class ImageController extends BaseController
             }
 
             // Upload image
-            $path = $request->file('image')->store('images', 'public');
+            //$path = $request->file('image')->store('images', 'public');
+            $imageFile = $request->file('image');
+            $filename  = time() . '_' . $imageFile->getClientOriginalName();
+            $imageFile->move(public_path('images'), $filename);
+
+            $path = 'images/' . $filename;
 
             $image = Image::create([
                 'image'    => $path,
                 'title'    => $request->title,
+                'tags'    => $request->tags ?? '',
                 'price'    => $request->price,
                 'desc'     => $request->desc ?? '',
-                'category' => $request->category ?? '',
+                'category_id' => $request->category_id ?? '',
                 'status'   => $request->status ?? 'Pending',
                 'alt'      => $request->alt ?? '',
                 'user_id'  => $request->user_id,
             ]);
 
-            return $this->sendResponse($image, 'Image uploaded successfully.');
+            $responseData = [
+                'image' => $image->image,
+                'title' => $image->title,
+                'tags'  => $image->tags,
+                'price' => $image->price,
+            ];
+
+            return $this->sendResponse($responseData, 'Image uploaded successfully.');
         } catch (\Throwable $e) {
             return $this->sendError('Exception Error', [
                 'error_message' => $e->getMessage(),
@@ -176,8 +300,9 @@ class ImageController extends BaseController
                 'id'       => 'required|integer|exists:images,id',
                 'image'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'title'    => 'nullable|string|max:150',
+                'tags'    => 'nullable',
                 'price'    => 'nullable|numeric',
-                'category' => 'nullable|integer',
+                'category_id' => 'nullable|integer',
                 'status'   => 'nullable|in:Approved,Pending,Rejected',
                 'alt'      => 'nullable|string',
                 'desc'     => 'nullable|string',
@@ -191,8 +316,13 @@ class ImageController extends BaseController
 
             // Replace image if received
             if ($request->hasFile('image')) {
-                Storage::disk('public')->delete($image->image);
-                $image->image = $request->file('image')->store('images', 'public');
+                //Storage::disk('public')->delete($image->image);
+                //$image->image = $request->file('image')->store('images', 'public');
+                $imageFile = $request->file('image');
+                $filename  = time() . '_' . $imageFile->getClientOriginalName();
+                $imageFile->move(public_path('images'), $filename);
+
+                $image->image = 'images/' . $filename;
             }
 
             // Update only received fields
@@ -208,12 +338,13 @@ class ImageController extends BaseController
                 $image->desc = $request->desc ?? '';
             }
 
-            if ($request->filled('category')) {
-                $image->category = $request->category;
+            if ($request->filled('category_id')) {
+                $image->category_id = $request->category_id;
             }
 
             $image->status = $request->status ?? 'Pending';
             $image->alt    = $request->alt ?? '';
+            $image->tags    = $request->tags ?? '';
 
             $image->save();
 

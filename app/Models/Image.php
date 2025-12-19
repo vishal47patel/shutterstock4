@@ -12,9 +12,10 @@ class Image extends Model
     protected $fillable = [
         'image',
         'title',
+        'tags',
         'price',
         'desc',
-        'category',
+        'category_id',
         'status',
         'alt',
         'user_id'
